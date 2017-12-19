@@ -1,1 +1,168 @@
-# gclou-ansible-vagrant-php-grub-mysql
+A build  for fully hacking senario from  the stracth  
+build  the Instance and you wil have a environment that illustrate the diffrent appraoches that can hakcers performs remotely,till gain root privileges on  linux target kernal v14...v16
+fisrt vulnerability : a directory traversal trough  web-application permet to load /etc/passwd
+second vulnerablity : bute force ssh 
+The third upload kernal exploit,run it remotely ang gain a root privileges.
+
+to prepare the environment follow  the instructions below:
+
+
+
+Features
+
+Boot Google Compute Engine instances.
+SSH into the instances.
+Provision the instances with any built-in Vagrant provisioner.
+Minimal synced folder support via rsync.
+Define zone-specific configurations so Vagrant can manage machines in multiple zones.
+Usage
+
+Install using standard Vagrant 1.1+ plugin installation methods. After installing, vagrant up and specify the google provider. For example,
+
+$ vagrant plugin install vagrant-google
+...
+$ vagrant up --provider=google
+...
+Of course, prior to this you'll need to obtain a GCE-compatible box file for Vagrant. You may also need to ensure you have a ruby-dev and other utilities such as GNU make installed prior to installing the plugin.
+
+Google Cloud Platform Setup
+
+Prior to using this plugin, you will first need to make sure you have a Google Cloud Platform account, enable Google Compute Engine, and create a Service Account for API Access.
+
+Log in with your Google Account and go to Google Cloud Platform and click on the Try it free button.
+Create a new project and remember to record the Project ID
+Next, enable the Google Compute Engine API for your project in the API console. If prompted, review and agree to the terms of service.
+While still in the API Console, go to Credentials subsection, and click Create credentials -> Service account key. In the next dialog, create a new service account, select JSON key type and click Create.
+Download the JSON private key and save this file in a secure and reliable location. This key file will be used to authorize all API requests to Google Compute Engine.
+Still on the same page, click on Manage service accounts link to go to IAM console. Copy the Service account id value of the service account you just selected. (it should end with gserviceaccount.com) You will need this email address and the location of the private key file to properly configure this Vagrant plugin.
+Add the SSH key you're going to use to GCE Metadata in Compute -> Compute Engine -> Metadata section of the console, SSH Keys tab. (Read the SSH Support readme section for more information.)
+Quick Start
+
+After installing the plugin (instructions above), the quickest way to get started is to actually use a dummy Google box from Atlas and specify all the details manually within a config.vm.provider block.
+
+So first, make a Vagrantfile that looks like the following, filling in your information where necessary:
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "google/gce"
+
+  config.vm.provider :google do |google, override|
+    google.google_project_id = "YOUR_GOOGLE_CLOUD_PROJECT_ID"
+    google.google_client_email = "YOUR_SERVICE_ACCOUNT_EMAIL_ADDRESS"
+    google.google_json_key_location = "/path/to/your/private-key.json"
+
+    override.ssh.username = "USERNAME"
+    override.ssh.private_key_path = "~/.ssh/id_rsa"
+    #override.ssh.private_key_path = "~/.ssh/google_compute_engine"
+  end
+
+end
+And then run vagrant up --provider=google.
+
+This will start a Debian 8 (Jessie) instance in the us-central1-f zone, with an n1-standard-1 machine, and the "default" network within your project. And assuming your SSH information (see below) was filled in properly within your Vagrantfile, SSH and provisioning will work as well.
+
+Note that normally a lot of this boilerplate is encoded within the box file, but the box file used for the quick start, the "google" box, has no preconfigured defaults.
+
+SSH Support
+
+In order for SSH to work properly to the GCE VM, you will first need to add your public key to the GCE metadata service for the desired VM user account. When a VM first boots, a Google-provided daemon is responsible for talking to the internal GCE metadata service and creates local user accounts and their respective ~/.ssh/authorized_keys entries. Most new GCE users will use the Cloud SDK gcloud compute utility when first getting started with GCE. This utility has built in support for creating SSH key pairs, and uploading the public key to the GCE metadata service. By default, gcloud compute creates a key pair named ~/.ssh/google_compute_engine[.pub].
+
+Note that you can use the more standard ~/.ssh/id_rsa[.pub] files, but you will need to manually add your public key to the GCE metadata service so your VMs will pick up the the key. Note that they public key is typically prefixed with the username, so that the daemon on the VM adds the public key to the correct user account.
+
+Additionally, you will probably need to add the key and username to override settings in your Vagrantfile like so:
+
+config.vm.provider :google do |google, override|
+
+    #...google provider settings are skipped...
+
+    override.ssh.username = "testuser"
+    override.ssh.private_key_path = "~/.ssh/id_rsa"
+
+    #...google provider settings are skipped...
+
+end
+See the links below for more help with SSH and GCE VMs.
+
+https://cloud.google.com/compute/docs/instances#sshing
+https://cloud.google.com/compute/docs/console#sshkeys
+Box Format
+
+Every provider in Vagrant must introduce a custom box format. This provider introduces google boxes. You can view an example box in example_boxes/. That directory also contains instructions on how to build a box.
+
+The box format is basically just the required metadata.json file along with a Vagrantfile that does default settings for the provider-specific configuration for this provider.
+
+Configuration
+
+This provider exposes quite a few provider-specific configuration options:
+
+google_client_email - The Client Email address for your Service Account.
+(Can also be configured with GOOGLE_CLIENT_EMAIL environment variable.)
+google_key_location - The location of the P12 private key file matching your Service Account.
+(Can also be configured with GOOGLE_KEY_LOCATION environment variable.)
+google_json_key_location - The location of the JSON private key file matching your Service Account.
+(Can also be configured with GOOGLE_JSON_KEY_LOCATION environment variable.)
+google_project_id - The Project ID for your Google Cloud Platform account.
+(Can also be configured with GOOGLE_PROJECT_ID environment variable.)
+image - The image name to use when booting your instance.
+instance_group - Unmanaged instance group to add the machine to. If one doesn't exist it will be created.
+instance_ready_timeout - The number of seconds to wait for the instance to become "ready" in GCE. Defaults to 20 seconds.
+machine_type - The machine type to use. The default is "n1-standard-1".
+disk_size - The disk size in GB. The default is 10.
+disk_name - The disk name to use. If the disk exists, it will be reused, otherwise created.
+disk_type - Whether to use Standard disk or SSD disk. Use either pd-ssd or pd-standard.
+metadata - Custom key/value pairs of metadata to add to the instance.
+name - The name of your instance. The default is "i-yyyymmddhh-randomsd", e.g. 10/08/2015 13:15:15 is "i-2015081013-15637fda".
+network - The name of the network to use for the instance. Default is "default".
+subnetwork - The name of the subnetwork to use for the instance.
+tags - An array of tags to apply to this instance.
+zone - The zone name where the instance will be created.
+can_ip_forward - Boolean whether to enable IP Forwarding.
+external_ip - The external IP address to use (supports names). Set to false to not assign an external address.
+use_private_ip - Boolean whether to use private IP for SSH/provisioning. Default is false.
+preemptible - Boolean whether to enable preemptibility. Default is false.
+auto_restart - Boolean whether to enable auto_restart. Default is true.
+on_host_maintenance - What to do on host maintenance. Default is "MIGRATE".
+service_accounts or scopes - An array of OAuth2 account scopes for services that the instance will have access to. Those can be both full API scopes, just endpoint aliases (the part after ...auth/), and gcloud utility aliases, for example: ['storage-full', 'bigquery', 'https://www.googleapis.com/auth/compute'].
+These can be set like typical provider-specific configuration:
+
+Vagrant.configure("2") do |config|
+  # ... other stuff
+
+  config.vm.provider :google do |google|
+    google.google_project_id = "YOUR_GOOGLE_CLOUD_PROJECT_ID"
+    google.google_client_email = "YOUR_SERVICE_ACCOUNT_EMAIL_ADDRESS"
+    google.google_json_key_location = "/path/to/your/private-key.json"
+  end
+end
+In addition to the above top-level configs, you can use the zone_config method to specify zone-specific overrides within your Vagrantfile. Note that the top-level zone config must always be specified to choose which zone you want to actually use, however. This looks like this:
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "google/gce"
+
+  config.vm.provider :google do |google|
+    google.google_project_id = "YOUR_GOOGLE_CLOUD_PROJECT_ID"
+    google.google_client_email = "YOUR_SERVICE_ACCOUNT_EMAIL_ADDRESS"
+    google.google_json_key_location = "/path/to/your/private-key.json"
+
+    # Make sure to set this to trigger the zone_config
+    google.zone = "us-central1-f"
+
+    google.zone_config "us-central1-f" do |zone1f|
+        zone1f.name = "testing-vagrant"
+        zone1f.image = "debian-8-jessie-v20160923"
+        zone1f.machine_type = "n1-standard-4"
+        zone1f.zone = "us-central1-f"
+        zone1f.metadata = {'custom' => 'metadata', 'testing' => 'foobarbaz'}
+        zone1f.scopes = ['bigquery', 'monitoring', 'https://www.googleapis.com/auth/compute']
+        zone1f.tags = ['web', 'app1']
+    end
+  end
+end
+The zone-specific configurations will override the top-level configurations when that zone is used. They otherwise inherit the top-level configurations, as you would expect.
+
+There are a few example Vagrantfiles located in the vagrantfile_examples/ directory.
+
+Networks
+
+Networking features in the form of config.vm.network are not supported with vagrant-google, currently. If any of these are specified, Vagrant will emit a warning, but will otherwise boot the GCE machine.
+
