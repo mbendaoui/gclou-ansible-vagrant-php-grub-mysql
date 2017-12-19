@@ -1,0 +1,14 @@
+---
+
+- name: install ad
+  hosts: all
+  remote_user: dbendaoui3333
+  become: yes
+
+  vars:
+   user: dodo
+  roles:
+  - user
+  - apache
+  - handlers
+...

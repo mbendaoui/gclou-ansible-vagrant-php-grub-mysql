@@ -1,0 +1,9 @@
+---
+
+
+
+  - name: copy flag to server abd changes perission on it
+    copy: src=~/vagrant/flag.jpg  dest=/root/flag.jpg owner=root mode=0700
+
+
+...

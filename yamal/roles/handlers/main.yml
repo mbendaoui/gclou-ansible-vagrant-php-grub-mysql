@@ -1,0 +1,17 @@
+---
+- name: apache2 reload
+  service:  name=apache2 state=reloaded
+
+- name: ssh restarted
+  service: name=ssh state=restarted
+- name: restart apache2
+  service: name=apache2  state=restarted
+- name: mysql restarted
+  service: name=mysql state=restarted
+
+
+
+
+
+
+...

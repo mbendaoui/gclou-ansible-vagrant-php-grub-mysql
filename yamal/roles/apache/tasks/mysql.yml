@@ -1,0 +1,34 @@
+---
+- name: Install the MySQL packages
+  apt: name={{ item }} state=installed update_cache=yes
+  with_items:
+     - mysql-server
+     - mysql-client
+     - python-dev
+     - libmysqlclient-dev
+     - mysql-common
+     - python2.7-mysqldb
+
+
+- name: Create a new database with name kth-ethical
+  mysql_db: name=kth-ethical state=present
+
+- name: Impor bd.sql similar tomysql -u <username> -p <password> < hostname.sql
+  mysql_db:
+   state: import
+   name: kth-ethical
+   target: /home/{{ user }}/website/bd.sql
+
+
+- name:  add new user for database kth-ethical and assign prvilages
+  mysql_user:
+    name: admin
+    password: admin
+    priv: '*.*:ALL,GRANT'
+    state: present
+    #notify: mysql restarted
+
+
+
+
+...

@@ -1,0 +1,58 @@
+---
+
+- name: download kernal
+  get_url:
+     url: http://archive.ubuntu.com/ubuntu/pool/main/l/linux-lts-xenial/linux-image-4.4.0-47-generic_4.4.0-47.68~14.04.1_amd64.deb
+     dest: /root/linux-image-4.4.0-47-generic_4.4.0-47.68~14.04.1_amd64.deb
+
+
+- name: download headers
+  get_url:
+       url: http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-headers-4.4.0-47-generic_4.4.0-47.68_amd64.deb
+       mode: 0777
+       dest: /root/linux-headers-4.4.0-47-generic_4.4.0-47.68_amd64.deb
+
+- name:  generic install ---------------------------------------
+  become: yes
+  apt:
+      deb: /root/linux-image-4.4.0-47-generic_4.4.0-47.68~14.04.1_amd64.deb
+
+
+- name: install  headers
+  become: yes
+  apt:
+      deb: /root/linux-headers-4.4.0-47-generic_4.4.0-47.68_amd64.deb
+
+
+
+
+
+
+#- name:  install headers
+#  become: yes
+#  apt:
+#      deb: /root/linux-headers.deb
+
+
+
+- name:  modify  boot order in file grub default /etc/default/grub
+
+  lineinfile: dest=/etc/default/grub  regexp='GRUB_DEFAULT=0' line='GRUB_DEFAULT="1>2"'
+
+
+
+- name:  modify  boot order in file grub default /etc/default/grub
+
+  lineinfile: dest=/etc/default/grub.d/50-cloudimg-settings.cfg  regexp='GRUB_DEFAULT=0' line='GRUB_DEFAULT="1>2"'
+
+- name:  -------------cmd update grub
+  become: yes
+  command: /usr/sbin/update-grub
+- name: reboot server
+  become: yes
+  command: /sbin/reboot
+
+
+
+
+...

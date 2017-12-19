@@ -1,0 +1,25 @@
+---
+
+  - name: creation user
+    when: user is defined
+    user: name={{ user }}
+    password: $6$u3xq69ZS$uP0dY6lvpENIBa/QiFInHcln4j6X7bnxsniYZc3otQe2F3DuHr4IJBisPde9yfd9wZKd.gX9q.62af.uhf86G.
+  - name: add ssh key
+    become: yes
+    when: user is defined
+    authorized_key: user={{ user }} key="{{ lookup('file', '~/.ssh/id_rsa.pub')}}"
+  - name:  our user become sudo
+    when: user is defined
+    template: src=template/sudoers.2j dest=/etc/sudoers.d/{{ user }}-sudoers validate='visudo -cf %s'
+  - name : allow ssh connexion for our new user
+    become: yes
+    lineinfile: dest=/etc/ssh/sshd_config  regexp='PasswordAuthentication no' line='PasswordAuthentication yes'
+  - name: desinstaller   sshgard
+    become: yes
+    apt: name=sshgard state=absent
+  - name: Reset iptables to blank slate
+    become: yes
+    apt: name=iptables state=absent
+
+    notify: ssh restarted
+...

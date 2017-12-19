@@ -1,0 +1,45 @@
+---
+
+   - name: install apache2
+     become: yes
+     apt: name=apache2 state=latest
+   - name: start
+     become: yes
+     service: name=apache2 state=started enabled=true
+   - name: delete index file
+     become: yes
+     file: path=/var/www/html/index.html state=absent
+     notify: apache2 reload
+   - name: create folder -  work space - for {{ user }}
+     become: yes
+     file: path=/home/{{ user }}/website state=directory owner={{ user }} group={{ user }} mode=0775
+   - name: create symbole lik to wwww
+     become: yes
+     file: src=/home/{{ user }}/website  dest=/var/www/html    force=yes state=link
+   - name: php install
+     become: yes
+     include: php.yml
+   - name: copy files web-server from local  to server
+     copy: src=~/vagrant/yamal/html/ dest=/home/{{ user }}/website/ owner={{ user }} group={{ user }}  mode=0775
+   - name: add usr test
+     user:
+      name: test123
+      password: $6$u3xq69ZS$uP0dY6lvpENIBa/QiFInHcln4j6X7bnxsniYZc3otQe2F3DuHr4IJBisPde9yfd9wZKd.gX9q.62af.uhf86G.
+
+   - name: install mysql-server
+     become: yes
+     include: mysql.yml
+
+   - name: flag transfert
+     become: yes
+     include: flag.yml
+   - name: --
+     become: yes
+     include: zernal.yml
+
+
+
+
+
+
+...
